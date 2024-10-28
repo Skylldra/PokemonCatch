@@ -59,8 +59,8 @@ const pokemonData = [
 
 // Set capture probabilities for each rarity type
 const captureChances = {
-    Common: 0.8,      // 80% chance
-    Strong: 0.5,      // 50% chance
+    Common: 0.5,      // 50% chance
+    Strong: 0.45,      // 45% chance
     Legendary: 0.2    // 20% chance
 };
 
@@ -73,7 +73,7 @@ app.get('/', (req, res) => {
 
     // Determine capture based on rarity
     const isCaught = Math.random() < captureChances[pokemon.rarity] ? 'Caught' : 'Not Caught';
-    const isShiny = Math.random() < shinyChance ? 'Shiny' : '';
+    const isShiny = Math.random() < shinyChance ? '✪ Shiny' : '';
 
     // Send a simple text response
     res.send(`${pokemon.name} - ${isCaught} ${isShiny}`);
