@@ -76,7 +76,7 @@ app.get('/', (req, res) => {
     const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
 
     // Send a simple text response
-    res.send(`${pokemon.name} - ${isCaught} ${isShiny}`);
+    res.send(`${isShiny} ${pokemon.name} - ${isCaught}`);
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
