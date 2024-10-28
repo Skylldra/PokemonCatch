@@ -72,8 +72,8 @@ app.get('/', (req, res) => {
     const pokemon = pokemonData[randomIndex];
 
     // Determine capture based on rarity
-    const isCaught = Math.random() < captureChances[pokemon.rarity] ? 'Caught' : 'Not Caught';
-    const isShiny = Math.random() < shinyChance ? '✪ Shiny' : '';
+    const isCaught = Math.random() < captureChances[pokemon.rarity] ? 'Gefangen' : 'Geflohen';
+    const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
 
     // Send a simple text response
     res.send(`${pokemon.name} - ${isCaught} ${isShiny}`);
