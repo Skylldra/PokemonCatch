@@ -2,44 +2,81 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Array of the first 151 Pokémon names
-const pokemonNames = [
-    "001 Bisasam", "002 Bisaknosp", "003 Bisaflor", "004 Glumanda", "005 Glutexo", "006 Glurak",
-    "007 Schiggy", "008 Schillok", "009 Turtok", "010 Raupy", "011 Safcon", "012 Smettbo",
-    "013 Hornliu", "014 Kokuna", "015 Bibor", "016 Taubsi", "017 Tauboga", "018 Tauboss",
-    "019 Rattfratz", "020 Rattikarl", "021 Habitak", "022 Ibitak", "023 Rettan", "024 Arbok",
-    "025 Pikachu", "026 Raichu", "027 Sandan", "028 Sandamer", "029 Nidoran♀", "030 Nidorina",
-    "031 Nidoqueen", "032 Nidoran♂", "033 Nidorino", "034 Nidoking", "035 Piepi", "036 Pixi",
-    "037 Vulpix", "038 Vulnona", "039 Pummeluff", "040 Knuddeluff", "041 Zubat", "042 Golbat",
-    "043 Myrapla", "044 Duflor", "045 Giflor", "046 Paras", "047 Parasek", "048 Bluzuk",
-    "049 Omot", "050 Digda", "051 Digdri", "052 Mauzi", "053 Snobilikat", "054 Enton",
-    "055 Entoron", "056 Menki", "057 Rasaff", "058 Fukano", "059 Arkani", "060 Quapsel",
-    "061 Quaputzi", "062 Quappo", "063 Abra", "064 Kadabra", "065 Simsala", "066 Machollo",
-    "067 Maschock", "068 Machomei", "069 Knofensa", "070 Ultrigaria", "071 Sarzenia",
-    "072 Tentacha", "073 Tentoxa", "074 Kleinstein", "075 Georok", "076 Geowaz", "077 Ponita",
-    "078 Gallopa", "079 Flegmon", "080 Lahmus", "081 Magnetilo", "082 Magneton", "083 Porenta",
-    "084 Dodu", "085 Dodri", "086 Jurob", "087 Jugong", "088 Sleima", "089 Sleimok",
-    "090 Muschas", "091 Austos", "092 Nebulak", "093 Alpollo", "094 Gengar", "095 Onix",
-    "096 Traumato", "097 Hypno", "098 Krabby", "099 Kingler", "100 Voltobal", "101 Lektrobal",
-    "102 Owei", "103 Kokowei", "104 Tragosso", "105 Knogga", "106 Kicklee", "107 Nockchan",
-    "108 Schlurp", "109 Smogon", "110 Smogmog", "111 Rihorn", "112 Rizeros", "113 Chaneira",
-    "114 Tangela", "115 Kangama", "116 Seeper", "117 Seemon", "118 Goldini", "119 Golking",
-    "120 Sterndu", "121 Starmie", "122 Pantimos", "123 Sichlor", "124 Rossana", "125 Elektek",
-    "126 Magmar", "127 Pinsir", "128 Tauros", "129 Karpador", "130 Garados", "131 Lapras",
-    "132 Ditto", "133 Evoli", "134 Aquana", "135 Blitza", "136 Flamara", "137 Porygon",
-    "138 Amonitas", "139 Amoroso", "140 Kabuto", "141 Kabutops", "142 Aerodactyl", "143 Relaxo",
-    "144 Arktos", "145 Zapdos", "146 Lavados", "147 Dratini", "148 Dragonir", "149 Dragoran",
-    "150 Mewtu", "151 Mew"
+// Define Pokémon with capture probabilities
+const pokemonData = [
+    { name: "001 Bisasam", rarity: "Common" }, { name: "002 Bisaknosp", rarity: "Common" }, { name: "003 Bisaflor", rarity: "Strong" },
+    { name: "004 Glumanda", rarity: "Common" }, { name: "005 Glutexo", rarity: "Common" }, { name: "006 Glurak", rarity: "Strong" },
+    { name: "007 Schiggy", rarity: "Common" }, { name: "008 Schillok", rarity: "Common" }, { name: "009 Turtok", rarity: "Strong" },
+    { name: "010 Raupy", rarity: "Common" }, { name: "011 Safcon", rarity: "Common" }, { name: "012 Smettbo", rarity: "Common" },
+    { name: "013 Hornliu", rarity: "Common" }, { name: "014 Kokuna", rarity: "Common" }, { name: "015 Bibor", rarity: "Common" },
+    { name: "016 Taubsi", rarity: "Common" }, { name: "017 Tauboga", rarity: "Common" }, { name: "018 Tauboss", rarity: "Common" },
+    { name: "019 Rattfratz", rarity: "Common" }, { name: "020 Rattikarl", rarity: "Common" }, { name: "021 Habitak", rarity: "Common" },
+    { name: "022 Ibitak", rarity: "Common" }, { name: "023 Rettan", rarity: "Common" }, { name: "024 Arbok", rarity: "Common" },
+    { name: "025 Pikachu", rarity: "Strong" }, { name: "026 Raichu", rarity: "Strong" }, { name: "027 Sandan", rarity: "Common" },
+    { name: "028 Sandamer", rarity: "Common" }, { name: "029 Nidoran♀", rarity: "Common" }, { name: "030 Nidorina", rarity: "Common" },
+    { name: "031 Nidoqueen", rarity: "Strong" }, { name: "032 Nidoran♂", rarity: "Common" }, { name: "033 Nidorino", rarity: "Common" },
+    { name: "034 Nidoking", rarity: "Strong" }, { name: "035 Piepi", rarity: "Common" }, { name: "036 Pixi", rarity: "Common" },
+    { name: "037 Vulpix", rarity: "Common" }, { name: "038 Vulnona", rarity: "Strong" }, { name: "039 Pummeluff", rarity: "Common" },
+    { name: "040 Knuddeluff", rarity: "Common" }, { name: "041 Zubat", rarity: "Common" }, { name: "042 Golbat", rarity: "Common" },
+    { name: "043 Myrapla", rarity: "Common" }, { name: "044 Duflor", rarity: "Common" }, { name: "045 Giflor", rarity: "Strong" },
+    { name: "046 Paras", rarity: "Common" }, { name: "047 Parasek", rarity: "Common" }, { name: "048 Bluzuk", rarity: "Common" },
+    { name: "049 Omot", rarity: "Common" }, { name: "050 Digda", rarity: "Common" }, { name: "051 Digdri", rarity: "Common" },
+    { name: "052 Mauzi", rarity: "Common" }, { name: "053 Snobilikat", rarity: "Common" }, { name: "054 Enton", rarity: "Common" },
+    { name: "055 Entoron", rarity: "Common" }, { name: "056 Menki", rarity: "Common" }, { name: "057 Rasaff", rarity: "Common" },
+    { name: "058 Fukano", rarity: "Common" }, { name: "059 Arkani", rarity: "Strong" }, { name: "060 Quapsel", rarity: "Common" },
+    { name: "061 Quaputzi", rarity: "Common" }, { name: "062 Quappo", rarity: "Strong" }, { name: "063 Abra", rarity: "Common" },
+    { name: "064 Kadabra", rarity: "Common" }, { name: "065 Simsala", rarity: "Strong" }, { name: "066 Machollo", rarity: "Common" },
+    { name: "067 Maschock", rarity: "Common" }, { name: "068 Machomei", rarity: "Strong" }, { name: "069 Knofensa", rarity: "Common" },
+    { name: "070 Ultrigaria", rarity: "Common" }, { name: "071 Sarzenia", rarity: "Strong" }, { name: "072 Tentacha", rarity: "Common" },
+    { name: "073 Tentoxa", rarity: "Common" }, { name: "074 Kleinstein", rarity: "Common" }, { name: "075 Georok", rarity: "Common" },
+    { name: "076 Geowaz", rarity: "Strong" }, { name: "077 Ponita", rarity: "Common" }, { name: "078 Gallopa", rarity: "Strong" },
+    { name: "079 Flegmon", rarity: "Common" }, { name: "080 Lahmus", rarity: "Strong" }, { name: "081 Magnetilo", rarity: "Common" },
+    { name: "082 Magneton", rarity: "Strong" }, { name: "083 Porenta", rarity: "Common" }, { name: "084 Dodu", rarity: "Common" },
+    { name: "085 Dodri", rarity: "Common" }, { name: "086 Jurob", rarity: "Common" }, { name: "087 Jugong", rarity: "Common" },
+    { name: "088 Sleima", rarity: "Common" }, { name: "089 Sleimok", rarity: "Common" }, { name: "090 Muschas", rarity: "Common" },
+    { name: "091 Austos", rarity: "Strong" }, { name: "092 Nebulak", rarity: "Common" }, { name: "093 Alpollo", rarity: "Common" },
+    { name: "094 Gengar", rarity: "Strong" }, { name: "095 Onix", rarity: "Strong" }, { name: "096 Traumato", rarity: "Common" },
+    { name: "097 Hypno", rarity: "Common" }, { name: "098 Krabby", rarity: "Common" }, { name: "099 Kingler", rarity: "Common" },
+    { name: "100 Voltobal", rarity: "Common" }, { name: "101 Lektrobal", rarity: "Common" }, { name: "102 Owei", rarity: "Common" },
+    { name: "103 Kokowei", rarity: "Strong" }, { name: "104 Tragosso", rarity: "Common" }, { name: "105 Knogga", rarity: "Common" },
+    { name: "106 Kicklee", rarity: "Strong" }, { name: "107 Nockchan", rarity: "Strong" }, { name: "108 Schlurp", rarity: "Common" },
+    { name: "109 Smogon", rarity: "Common" }, { name: "110 Smogmog", rarity: "Common" }, { name: "111 Rihorn", rarity: "Common" },
+    { name: "112 Rizeros", rarity: "Strong" }, { name: "113 Chaneira", rarity: "Strong" }, { name: "114 Tangela", rarity: "Common" },
+    { name: "115 Kangama", rarity: "Strong" }, { name: "116 Seeper", rarity: "Common" }, { name: "117 Seemon", rarity: "Common" },
+    { name: "118 Goldini", rarity: "Common" }, { name: "119 Golking", rarity: "Common" }, { name: "120 Sterndu", rarity: "Common" },
+    { name: "121 Starmie", rarity: "Strong" }, { name: "122 Pantimos", rarity: "Strong" }, { name: "123 Sichlor", rarity: "Strong" },
+    { name: "124 Rossana", rarity: "Strong" }, { name: "125 Elektek", rarity: "Strong" }, { name: "126 Magmar", rarity: "Strong" },
+    { name: "127 Pinsir", rarity: "Strong" }, { name: "128 Tauros", rarity: "Strong" }, { name: "129 Karpador", rarity: "Common" },
+    { name: "130 Garados", rarity: "Strong" }, { name: "131 Lapras", rarity: "Strong" }, { name: "132 Ditto", rarity: "Strong" },
+    { name: "133 Evoli", rarity: "Common" }, { name: "134 Aquana", rarity: "Strong" }, { name: "135 Blitza", rarity: "Strong" },
+    { name: "136 Flamara", rarity: "Strong" }, { name: "137 Porygon", rarity: "Strong" }, { name: "138 Amonitas", rarity: "Common" },
+    { name: "139 Amoroso", rarity: "Strong" }, { name: "140 Kabuto", rarity: "Common" }, { name: "141 Kabutops", rarity: "Strong" },
+    { name: "142 Aerodactyl", rarity: "Strong" }, { name: "143 Relaxo", rarity: "Strong" },
+    { name: "144 Arktos", rarity: "Legendary" }, { name: "145 Zapdos", rarity: "Legendary" }, { name: "146 Lavados", rarity: "Legendary" },
+    { name: "147 Dratini", rarity: "Common" }, { name: "148 Dragonir", rarity: "Strong" }, { name: "149 Dragoran", rarity: "Strong" },
+    { name: "150 Mewtu", rarity: "Legendary" }, { name: "151 Mew", rarity: "Legendary" }
 ];
 
+// Set capture probabilities for each rarity type
+const captureChances = {
+    Common: 0.8,      // 80% chance
+    Strong: 0.5,      // 50% chance
+    Legendary: 0.2    // 20% chance
+};
+
+// Set shiny chance
+const shinyChance = 0.05;
+
 app.get('/', (req, res) => {
-    const randomIndex = Math.floor(Math.random() * pokemonNames.length);
-    const pokemonName = pokemonNames[randomIndex];
-    const caught = Math.random() < 0.5 ? 'Caught' : 'Not Caught';
-    const shiny = Math.random() < 0.05 ? 'Shiny' : '';
+    const randomIndex = Math.floor(Math.random() * pokemonData.length);
+    const pokemon = pokemonData[randomIndex];
+
+    // Determine capture based on rarity
+    const isCaught = Math.random() < captureChances[pokemon.rarity] ? 'Caught' : 'Not Caught';
+    const isShiny = Math.random() < shinyChance ? 'Shiny' : '';
 
     // Send a simple text response
-    res.send(`${pokemonName} - ${caught} ${shiny}`);
+    res.send(`${pokemon.name} - ${isCaught} ${isShiny}`);
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
