@@ -68,27 +68,16 @@ const captureChances = {
 // Set shiny chance
 const shinyChance = 0.05;
 
-app.get('/', async (req, res) => {
-    const username = req.query.username || 'unknown'; // Benutzername aus Anfrage
+app.get('/', (req, res) => {
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
 
-    // Zufällige Bestimmung, ob Pokémon gefangen wurde oder shiny ist
+    // Determine capture based on rarity
     const isCaught = Math.random() < captureChances[pokemon.rarity] ? '◓Gefangen◓' : '🞮Entkommen🞮';
     const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
 
-    try {
-        // Nur Benutzername und Pokémon-Name an das Pokédex-Backend senden
-        const pokedexResponse = await sendToPokedex(username, pokemon);
-
-        // Rückmeldung an den Nutzer
-        res.send(`${isShiny} ${pokemon.name} - ${isCaught}<br>${pokedexResponse}`);
-    } catch (error) {
-        res.status(500).send("Ein Fehler ist aufgetreten. Bitte versuche es später erneut.");
-    }
+    // Send a simple text response
+    res.send(`${isShiny} ${pokemon.name} - ${isCaught}`);
 });
-
-
-
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
