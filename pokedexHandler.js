@@ -1,7 +1,7 @@
 const fetch = require('node-fetch');
 
 async function sendToPokedex(username, pokemon) {
-    const pokedexUrl = `https://pokedex-dt48.onrender.com/catch`;
+    const pokedexUrl = `https://pokedex-dt48.onrender.com`;
 
     try {
         const response = await fetch(pokedexUrl, {
