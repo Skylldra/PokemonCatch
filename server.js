@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-const { handlePokedexInteraction } = require('./pokedexHandler');
 const PORT = process.env.PORT || 3000;
 
 // Define Pokémon with capture probabilities
