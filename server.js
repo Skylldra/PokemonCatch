@@ -67,16 +67,46 @@ const captureChances = {
 // Set shiny chance
 const shinyChance = 0.05;
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+    const username = req.query.username; // Twitch-Benutzername (aus Anfrage)
+    if (!username) {
+        return res.status(400).send("Fehlender Benutzername. Bitte 'username' als Query-Parameter angeben.");
+    }
+
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
 
     // Determine capture based on rarity
-    const isCaught = Math.random() < captureChances[pokemon.rarity] ? '◓Gefangen◓' : '🞮Entkommen🞮';
-    const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
+    const isCaught = Math.random() < captureChances[pokemon.rarity];
+    const isShiny = Math.random() < shinyChance;
 
-    // Send a simple text response
-    res.send(`${isShiny} ${pokemon.name} - ${isCaught}`);
+    // URL für das Pokédex-Backend
+    const pokedexUrl = `https://pokemoncatch.onrender.com/catch`;
+
+    try {
+        // Sende Fang-Informationen an das Pokédex-Backend
+        const response = await fetch(pokedexUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: username,
+                pokemonId: pokemon.id,
+                caught: isCaught,
+                shiny: isShiny
+            })
+        });
+
+        const pokedexResponse = await response.text();
+
+        // Chat-Ausgabe basierend auf Fangstatus
+        res.send(`
+            ${isShiny ? '✪Shiny✪' : ''} ${pokemon.name} - ${isCaught ? '◓Gefangen◓' : '🞮Entkommen🞮'}
+            <br>${pokedexResponse}
+        `);
+    } catch (error) {
+        console.error('Fehler beim Senden an das Pokédex-Backend:', error);
+        res.status(500).send("Ein Fehler ist aufgetreten. Bitte versuche es später erneut.");
+    }
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
