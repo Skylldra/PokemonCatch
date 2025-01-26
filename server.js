@@ -73,11 +73,13 @@ app.get('/', async (req, res) => {
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
 
+    // Zufällige Bestimmung, ob Pokémon gefangen wurde oder shiny ist
     const isCaught = Math.random() < captureChances[pokemon.rarity] ? '◓Gefangen◓' : '🞮Entkommen🞮';
     const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
 
     try {
-        const pokedexResponse = await sendToPokedex(username, pokemon, isCaught, isShiny);
+        // Nur Benutzername und Pokémon-Name an das Pokédex-Backend senden
+        const pokedexResponse = await sendToPokedex(username, pokemon);
 
         // Rückmeldung an den Nutzer
         res.send(`${isShiny} ${pokemon.name} - ${isCaught}<br>${pokedexResponse}`);
@@ -85,6 +87,7 @@ app.get('/', async (req, res) => {
         res.status(500).send("Ein Fehler ist aufgetreten. Bitte versuche es später erneut.");
     }
 });
+
 
 
 
