@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const { sendToPokedex } = require('./pokedexHandler');
+const { handlePokedexInteraction } = require('./pokedexHandler');
 const PORT = process.env.PORT || 3000;
 
 // Define Pokémon with capture probabilities
@@ -68,7 +68,8 @@ const captureChances = {
 // Set shiny chance
 const shinyChance = 0.05;
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+    const username = req.query.username || 'unknown'; // Standardwert, falls kein Nutzername angegeben wird
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
 
@@ -76,8 +77,16 @@ app.get('/', (req, res) => {
     const isCaught = Math.random() < captureChances[pokemon.rarity] ? '◓Gefangen◓' : '🞮Entkommen🞮';
     const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
 
-    // Send a simple text response
-    res.send(`${isShiny} ${pokemon.name} - ${isCaught}`);
+    // Kommunikation mit dem Pokédex-Backend
+    try {
+        const pokedexResponse = await handlePokedexInteraction(username, pokemon, isCaught, isShiny);
+
+        // Rückmeldung an den Nutzer senden
+        res.send(`${isShiny} ${pokemon.name} - ${isCaught}<br>${pokedexResponse}`);
+    } catch (error) {
+        res.status(500).send("Ein Fehler ist aufgetreten. Bitte versuche es später erneut.");
+    }
 });
+
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
