@@ -3,11 +3,10 @@
     "version": "1.0.0",
     "description": "A simple app to catch Pokémon",
     "main": "server.js",
-    "type": "module",
     "scripts": {
         "start": "node server.js"
     },
     "dependencies": {
-        "express": "^4.17.1",
+        "express": "^4.17.1"
     }
 }
