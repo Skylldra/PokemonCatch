@@ -81,7 +81,7 @@ app.get('/', async (req, res) => {
     const isShiny = Math.random() < shinyChance;
 
     // URL für das Pokédex-Backend
-    const pokedexUrl = `https://pokemoncatch.onrender.com/catch`;
+    const pokedexUrl = `https://pokedex-dt48.onrender.com/catch`;
 
     try {
         // Sende Fang-Informationen an das Pokédex-Backend
@@ -108,5 +108,7 @@ app.get('/', async (req, res) => {
         res.status(500).send("Ein Fehler ist aufgetreten. Bitte versuche es später erneut.");
     }
 });
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
