@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-async function sendToPokedex(username, pokemon, isCaught, isShiny) {
+async function sendToPokedex(username, pokemon) {
     const pokedexUrl = `https://pokedex-dt48.onrender.com/catch`;
 
     try {
@@ -9,9 +9,8 @@ async function sendToPokedex(username, pokemon, isCaught, isShiny) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 username: username,
-                pokemonId: pokemon.id,
-                caught: isCaught === '◓Gefangen◓',
-                shiny: !!isShiny
+                pokemonId: pokemon.id, // Pokémon-ID übergeben
+                name: pokemon.name    // Pokémon-Name übergeben
             })
         });
 
