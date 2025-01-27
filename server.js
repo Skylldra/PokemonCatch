@@ -103,9 +103,6 @@ const pokedexUrl = `https://pokedex-dt48.onrender.com`;
 const caughtMessage = isCaught ? '◓Gefangen◓' : '🞮Entkommen🞮';
 const shinyMessage = isShiny ? '✪Shiny✪' : '';
 
-    // URL für den Pokédex-Server NEW!!!!!!!!!!!!!!!
-    const pokedexUrl = `https://pokedex-dt48.onrender.com`;
-
     try {
         // Daten an den Pokédex-Server senden
         await fetch(pokedexUrl, {
