@@ -1,6 +1,12 @@
-const express = require('express');
+/*const express = require('express');
 const app = express();
 const fetch = require('node-fetch'); // Verwende node-fetch@2 NEW!!!!!!!!!!!
+const PORT = process.env.PORT || 3000;*/
+
+import express from "express";
+import fetch from "node-fetch";
+
+const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Define Pokémon with capture probabilities
