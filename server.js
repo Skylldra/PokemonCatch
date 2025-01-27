@@ -68,9 +68,17 @@ const captureChances = {
 // Set shiny chance
 const shinyChance = 0.05;
 
-app.get('/', (req, res) => {
+
+// Route for Twitch Chat `!catch` command NEW!!!!!!!!!!!!!
+app.get('/', async (req, res) => {
+    const username = req.query.username; // Twitch username
+    if (!username) {
+        return res.status(400).send("Fehlender Benutzername. Bitte 'username' als Query-Parameter angeben.");
+    }
+    
+/*app.get('/', (req, res) => {
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
-    const pokemon = pokemonData[randomIndex];
+    const pokemon = pokemonData[randomIndex];*/
 
     // Determine capture based on rarity
     const isCaught = Math.random() < captureChances[pokemon.rarity] ? '◓Gefangen◓' : '🞮Entkommen🞮';
