@@ -86,9 +86,22 @@ app.get('/', async (req, res) => {
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];*/
 
-    // Determine capture based on rarity
-    const isCaught = Math.random() < captureChances[pokemon.rarity] ? '◓Gefangen◓' : '🞮Entkommen🞮';
-    const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
+    // Zufälliges Pokémon auswählen (vor Nutzung in isCaught)
+const randomIndex = Math.floor(Math.random() * pokemonData.length); // NEW!!!!!!!!!!!!!
+const pokemon = pokemonData[randomIndex]; // NEW!!!!!!!!!!!!!
+
+// Fangstatus basierend auf Seltenheit bestimmen
+const isCaught = Math.random() < captureChances[pokemon.rarity]; // Wahrscheinlichkeiten basierend auf Seltenheit
+
+// Shiny-Status mit festgelegter Wahrscheinlichkeit bestimmen
+const isShiny = Math.random() < shinyChance; // 5% Chance für Shiny
+
+// URL für den Pokédex-Server
+const pokedexUrl = `https://pokedex-dt48.onrender.com`;
+
+// Ausgabe für Twitch-Chat (Symbole für Fangstatus und Shiny)
+const caughtMessage = isCaught ? '◓Gefangen◓' : '🞮Entkommen🞮';
+const shinyMessage = isShiny ? '✪Shiny✪' : '';
 
     // URL für den Pokédex-Server NEW!!!!!!!!!!!!!!!
     const pokedexUrl = `https://pokedex-dt48.onrender.com`;
