@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const fetch = require('node-fetch'); // Verwende node-fetch@2 NEW!!!!!!!!!!!
 const PORT = process.env.PORT || 3000;
 
 // Define Pokémon with capture probabilities
@@ -74,6 +75,26 @@ app.get('/', (req, res) => {
     // Determine capture based on rarity
     const isCaught = Math.random() < captureChances[pokemon.rarity] ? '◓Gefangen◓' : '🞮Entkommen🞮';
     const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
+
+    // URL für den Pokédex-Server NEW!!!!!!!!!!!!!!!
+    const pokedexUrl = `https://pokedex-dt48.onrender.com`;
+
+    try {
+        // Daten an den Pokédex-Server senden
+        await fetch(pokedexUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: username,
+                pokemonId: pokemon.id,
+                pokemonName: pokemon.name,
+                caught: isCaught,
+                shiny: isShiny
+            })
+        });
+    } catch (error) {
+        console.error('Fehler beim Speichern im Pokédex:', error);
+    }
 
     // Send a simple text response
     res.send(`${isShiny} ${pokemon.name} - ${isCaught}`);
