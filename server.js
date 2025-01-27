@@ -1,11 +1,4 @@
-/*const express = require('express');
-const app = express();
-const fetch = require('node-fetch'); // Verwende node-fetch@2 NEW!!!!!!!!!!!
-const PORT = process.env.PORT || 3000;*/
-
-const express = require("express");
-const fetch = require("node-fetch");
-
+const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -74,51 +67,13 @@ const captureChances = {
 // Set shiny chance
 const shinyChance = 0.05;
 
-
-// Route for Twitch Chat `!catch` command NEW!!!!!!!!!!!!!
-app.get('/', async (req, res) => {
-    const username = req.query.username; // Twitch username
-    if (!username) {
-        return res.status(400).send("Fehlender Benutzername. Bitte 'username' als Query-Parameter angeben.");
-    }
-    
-/*app.get('/', (req, res) => {
+app.get('/', (req, res) => {
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
-    const pokemon = pokemonData[randomIndex];*/
+    const pokemon = pokemonData[randomIndex];
 
-    // Zufälliges Pokémon auswählen (vor Nutzung in isCaught)
-const randomIndex = Math.floor(Math.random() * pokemonData.length); // NEW!!!!!!!!!!!!!
-const pokemon = pokemonData[randomIndex]; // NEW!!!!!!!!!!!!!
-
-// Fangstatus basierend auf Seltenheit bestimmen
-const isCaught = Math.random() < captureChances[pokemon.rarity]; // Wahrscheinlichkeiten basierend auf Seltenheit
-
-// Shiny-Status mit festgelegter Wahrscheinlichkeit bestimmen
-const isShiny = Math.random() < shinyChance; // 5% Chance für Shiny
-
-// URL für den Pokédex-Server
-const pokedexUrl = `https://pokedex-dt48.onrender.com`;
-
-// Ausgabe für Twitch-Chat (Symbole für Fangstatus und Shiny)
-const caughtMessage = isCaught ? '◓Gefangen◓' : '🞮Entkommen🞮';
-const shinyMessage = isShiny ? '✪Shiny✪' : '';
-
-    try {
-        // Daten an den Pokédex-Server senden
-        await fetch(pokedexUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                username: username,
-                pokemonId: pokemon.id,
-                pokemonName: pokemon.name,
-                caught: isCaught,
-                shiny: isShiny
-            })
-        });
-    } catch (error) {
-        console.error('Fehler beim Speichern im Pokédex:', error);
-    }
+    // Determine capture based on rarity
+    const isCaught = Math.random() < captureChances[pokemon.rarity] ? '◓Gefangen◓' : '🞮Entkommen🞮';
+    const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
 
     // Send a simple text response
     res.send(`${isShiny} ${pokemon.name} - ${isCaught}`);
