@@ -74,20 +74,26 @@ const shinyChance = 0.05;
 
 // **NEUE FUNKTION**: Gefangene Pokémon in die Datenbank speichern
 async function saveToDatabase(user, pokemon, isCaught, isShiny) {
-    if (!isCaught) return; // Nur speichern, wenn das Pokémon gefangen wurde
+    if (!isCaught) {
+        console.log(`❌ ${pokemon.name} wurde nicht gefangen. Kein Eintrag in die Datenbank.`);
+        return;
+    }
 
+    console.log(`🔄 Speichere ${pokemon.name} für ${user} in die Datenbank...`);
+    
     try {
-        await sql`
+        const result = await sql`
             INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
             VALUES (${user}, ${pokemon.id}, ${pokemon.name}, true, ${isShiny})
             ON CONFLICT (twitch_username, pokemon_id) DO UPDATE
             SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny;
         `;
-        console.log(`✅ ${pokemon.name} für ${user} in die Datenbank eingetragen.`);
+        console.log(`✅ ${pokemon.name} für ${user} erfolgreich gespeichert!`, result);
     } catch (error) {
-        console.error("❌ Fehler beim Speichern des Pokémon:", error);
+        console.error("❌ Fehler beim Speichern in die Datenbank:", error);
     }
 }
+
 
 // **Bestehender Endpunkt bleibt unverändert, aber mit zusätzlicher DB-Speicherung**
 app.get("/", async (req, res) => {
