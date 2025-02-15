@@ -72,13 +72,9 @@ const pokemonData = [
 const captureChances = { Common: 0.5, Strong: 0.45, Legendary: 0.2 };
 const shinyChance = 0.05;
 
-// 🛠️ **Pokémon in die Datenbank speichern, auch wenn es nicht gefangen wurde**
+// Pokémon in die Datenbank speichern
 async function saveToDatabase(user, pokemon, isCaught, isShiny) {
     const pokemonId = parseInt(pokemon.name.split(" ")[0]); // Pokémon-ID extrahieren
-    if (isNaN(pokemonId)) {
-        console.error(`❌ Fehler: Pokémon-ID konnte nicht extrahiert werden für ${pokemon.name}`);
-        return;
-    }
 
     console.log(`🔄 Speichere ${pokemon.name} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
 
@@ -95,7 +91,7 @@ async function saveToDatabase(user, pokemon, isCaught, isShiny) {
     }
 }
 
-// 🎯 **API-Endpunkt für `!catch` in Twitch**
+// API-Endpunkt für !catch in Twitch
 app.get("/", async (req, res) => {
     const user = req.query.user?.trim();
     
@@ -110,50 +106,17 @@ app.get("/", async (req, res) => {
     const isShiny = Math.random() < shinyChance;
 
     const catchStatus = isCaught ? "◓Gefangen◓" : "🞮Nicht gefangen🞮";
-    const shinyText = isShiny ? "✪Shiny✪" : "";
+    const shinyText = isShiny ? " ✨Shiny!✨" : "";
 
-    // 🛠️ Pokémon speichern, egal ob gefangen oder nicht
+    // Pokémon speichern
     await saveToDatabase(user, pokemon, isCaught, isShiny);
 
-    // **Angezeigter Name ohne doppelte Nummer**
+    // Angezeigter Name ohne doppelte Nummer
     const pokemonNumber = pokemon.name.split(" ")[0];
     const pokemonName = pokemon.name.split(" ").slice(1).join(" ");
 
-    res.send(`#${pokemonNumber} ${pokemonName} - ${catchStatus}`);
+    res.send(`#${pokemonNumber} ${pokemonName} - ${catchStatus}${shinyText}`);
 });
 
-// 🏆 **Pokédex abrufen, sortiert nach Nummer**
-app.get("/pokedex/:user", async (req, res) => {
-    const user = req.params.user?.trim();
-
-    if (!user) {
-        return res.send("Fehlender Benutzername.");
-    }
-
-    try {
-        const pokedexEntries = await sql`
-            SELECT pokemon_id, pokemon_name, gefangen FROM pokedex 
-            WHERE twitch_username = ${user} 
-            ORDER BY pokemon_id ASC;
-        `;
-
-        if (pokedexEntries.length === 0) {
-            return res.send("Keine Pokémon gefunden!");
-        }
-
-        const formattedEntries = pokedexEntries.map(entry => {
-            const pokemonNumber = entry.pokemon_id;
-            const pokemonName = entry.pokemon_name.split(" ").slice(1).join(" ");
-            const status = entry.gefangen ? "Gefangen" : "Nicht gefangen";
-            return `#${pokemonNumber} ${pokemonName} - ${status}`;
-        });
-
-        res.send(formattedEntries.join("\n"));
-    } catch (error) {
-        console.error("❌ Fehler beim Abrufen des Pokédex:", error);
-        res.status(500).send("Fehler beim Abrufen des Pokédex.");
-    }
-});
-
-// 🌍 **Server starten**
+// Server starten
 app.listen(PORT, () => console.log(`✅ Server läuft auf Port ${PORT}`));
