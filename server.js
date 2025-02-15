@@ -115,7 +115,7 @@ app.get("/", async (req, res) => {
     const pokemonNumber = pokemon.name.split(" ")[0];
     const pokemonName = pokemon.name.split(" ").slice(1).join(" ");
 
-    res.send(`#${pokemonNumber} ${pokemonName} - ${catchStatus}${shinyText}`);
+    res.send(`#${pokemonName} - ${catchStatus}${shinyText}`);
 });
 
 // Server starten
