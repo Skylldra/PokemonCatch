@@ -79,25 +79,35 @@ async function saveToDatabase(user, pokemon, isCaught, isShiny) {
         return;
     }
 
-    console.log(`🔄 Speichere ${pokemon.name} für ${user} in die Datenbank...`);
+    // Pokémon-ID extrahieren
+    const pokemonId = parseInt(pokemon.name.split(" ")[0]);
+    if (isNaN(pokemonId)) {
+        console.error(`❌ Fehler: Pokémon-ID konnte nicht extrahiert werden für ${pokemon.name}`);
+        return;
+    }
+
+    console.log(`🔄 Speichere ${pokemon.name} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
     
     try {
         const result = await sql`
             INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
-            VALUES (${user}, ${pokemon.id}, ${pokemon.name}, true, ${isShiny})
+            VALUES (${user}, ${pokemonId}, ${pokemon.name}, true, ${isShiny})
             ON CONFLICT (twitch_username, pokemon_id) DO UPDATE
             SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny;
         `;
-        console.log(`✅ ${pokemon.name} für ${user} erfolgreich gespeichert!`, result);
+        console.log(`✅ ${pokemon.name} für ${user} erfolgreich gespeichert!`);
     } catch (error) {
         console.error("❌ Fehler beim Speichern in die Datenbank:", error);
     }
 }
 
-
 // **Bestehender Endpunkt bleibt unverändert, aber mit zusätzlicher DB-Speicherung**
 app.get("/", async (req, res) => {
-    const user = req.query.user || "unknown";
+    const user = req.query.user;
+    if (!user || user.trim() === "") {
+        console.log("⚠️ Fehler: Twitch-Username nicht übergeben!");
+        return res.send("Fehlender Parameter: user");
+    }
 
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
