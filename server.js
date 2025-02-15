@@ -72,61 +72,88 @@ const pokemonData = [
 const captureChances = { Common: 0.5, Strong: 0.45, Legendary: 0.2 };
 const shinyChance = 0.05;
 
-// **Pokémon in die Datenbank speichern**
+// 🛠️ **Pokémon in die Datenbank speichern, auch wenn es nicht gefangen wurde**
 async function saveToDatabase(user, pokemon, isCaught, isShiny) {
-    console.log(`🔄 Speichere ${pokemon.name} für ${user} in die Datenbank...`);
+    const pokemonId = parseInt(pokemon.name.split(" ")[0]); // Pokémon-ID extrahieren
+    if (isNaN(pokemonId)) {
+        console.error(`❌ Fehler: Pokémon-ID konnte nicht extrahiert werden für ${pokemon.name}`);
+        return;
+    }
+
+    console.log(`🔄 Speichere ${pokemon.name} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
 
     try {
         await sql`
             INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
-            VALUES (${user}, ${pokemon.id}, ${pokemon.name}, ${isCaught}, ${isShiny})
+            VALUES (${user}, ${pokemonId}, ${pokemon.name}, ${isCaught}, ${isShiny})
             ON CONFLICT (twitch_username, pokemon_id) DO UPDATE
             SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny;
         `;
-        console.log(`✅ ${pokemon.name} für ${user} gespeichert!`);
+        console.log(`✅ ${pokemon.name} für ${user} erfolgreich gespeichert!`);
     } catch (error) {
-        console.error("❌ Fehler beim Speichern:", error);
+        console.error("❌ Fehler beim Speichern in die Datenbank:", error);
     }
 }
 
-// **API-Endpunkt für `!catch`**
+// 🎯 **API-Endpunkt für `!catch` in Twitch**
 app.get("/", async (req, res) => {
     const user = req.query.user?.trim();
-    if (!user) return res.send("Fehlender Parameter: user");
+    
+    if (!user || user === "") {
+        console.log("⚠️ Fehler: Twitch-Username nicht übergeben!");
+        return res.send("Fehlender Parameter: user");
+    }
 
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
     const isCaught = Math.random() < captureChances[pokemon.rarity];
     const isShiny = Math.random() < shinyChance;
 
-    const shinyText = isShiny ? "✨Shiny!✨ " : "";
-    const catchStatus = isCaught ? "◓Gefangen◓" : "❌Nicht gefangen❌";
+    const catchStatus = isCaught ? "◓Gefangen◓" : "🞮Nicht gefangen🞮";
+    const shinyText = isShiny ? "✪Shiny✪" : "";
 
-    // **Speichern in die DB (auch wenn es nicht gefangen wurde)**
+    // 🛠️ Pokémon speichern, egal ob gefangen oder nicht
     await saveToDatabase(user, pokemon, isCaught, isShiny);
 
-    res.send(`#${pokemon.id} ${pokemon.name} - ${shinyText}${catchStatus}`);
+    // **Angezeigter Name ohne doppelte Nummer**
+    const pokemonNumber = pokemon.name.split(" ")[0];
+    const pokemonName = pokemon.name.split(" ").slice(1).join(" ");
+
+    res.send(`#${pokemonNumber} ${pokemonName} - ${catchStatus}`);
 });
 
-// **Pokédex-Ansicht**
+// 🏆 **Pokédex abrufen, sortiert nach Nummer**
 app.get("/pokedex/:user", async (req, res) => {
-    const user = req.params.user;
-    const result = await sql`SELECT * FROM pokedex WHERE twitch_username = ${user} ORDER BY pokemon_id ASC;`;
+    const user = req.params.user?.trim();
 
-    let pokedexHTML = `<h2>Pokédex von ${user}</h2><div class="pokedex-container">`;
-    if (result.length === 0) {
-        pokedexHTML += "<p>Keine Pokémon gefunden!</p>";
-    } else {
-        result.forEach(entry => {
-            const shinyText = entry.shiny ? "✨ Shiny!" : "";
-            const status = entry.gefangen ? "Gefangen" : "Nicht gefangen";
-            pokedexHTML += `<p>#${entry.pokemon_id} ${entry.pokemon_name} - ${status} ${shinyText}</p>`;
-        });
+    if (!user) {
+        return res.send("Fehlender Benutzername.");
     }
-    pokedexHTML += "</div>";
 
-    res.send(pokedexHTML);
+    try {
+        const pokedexEntries = await sql`
+            SELECT pokemon_id, pokemon_name, gefangen FROM pokedex 
+            WHERE twitch_username = ${user} 
+            ORDER BY pokemon_id ASC;
+        `;
+
+        if (pokedexEntries.length === 0) {
+            return res.send("Keine Pokémon gefunden!");
+        }
+
+        const formattedEntries = pokedexEntries.map(entry => {
+            const pokemonNumber = entry.pokemon_id;
+            const pokemonName = entry.pokemon_name.split(" ").slice(1).join(" ");
+            const status = entry.gefangen ? "Gefangen" : "Nicht gefangen";
+            return `#${pokemonNumber} ${pokemonName} - ${status}`;
+        });
+
+        res.send(formattedEntries.join("\n"));
+    } catch (error) {
+        console.error("❌ Fehler beim Abrufen des Pokédex:", error);
+        res.status(500).send("Fehler beim Abrufen des Pokédex.");
+    }
 });
 
-// **Server starten**
+// 🌍 **Server starten**
 app.listen(PORT, () => console.log(`✅ Server läuft auf Port ${PORT}`));
