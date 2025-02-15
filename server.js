@@ -1,6 +1,16 @@
+require("dotenv").config();
+const { neon } = require("@neondatabase/serverless");
 const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Datenbankverbindung
+const databaseUrl = process.env.DATABASE_URL?.trim();
+if (!databaseUrl) {
+    console.error("ERROR: Keine DATABASE_URL gefunden! Stelle sicher, dass sie in Render als Environment Variable gesetzt ist.");
+    process.exit(1);
+}
+const sql = neon(databaseUrl);
 
 // Define Pokémon with capture probabilities
 const pokemonData = [
@@ -57,26 +67,44 @@ const pokemonData = [
     { name: "150 Mewtu", rarity: "Legendary" }, { name: "151 Mew", rarity: "Legendary" }
 ];
 
-// Set capture probabilities for each rarity type
-const captureChances = {
-    Common: 0.5,      // 50% chance
-    Strong: 0.45,      // 45% chance
-    Legendary: 0.2    // 20% chance
-};
-
-// Set shiny chance
+// Fang- & Shiny-Chancen
+const captureChances = { Common: 0.5, Strong: 0.45, Legendary: 0.2 };
 const shinyChance = 0.05;
 
-app.get('/', (req, res) => {
+// NEUE FUNKTION: Gefangene Pokémon in die Datenbank speichern
+async function saveToDatabase(user, pokemon, isCaught, isShiny) {
+    if (!isCaught) return; // Nur speichern, wenn das Pokémon gefangen wurde
+
+    try {
+        await sql`
+            INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
+            VALUES (${user}, ${pokemon.id}, ${pokemon.name}, true, ${isShiny})
+            ON CONFLICT (twitch_username, pokemon_id) DO UPDATE
+            SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny;
+        `;
+        console.log(`✅ ${pokemon.name} für ${user} in die Datenbank eingetragen.`);
+    } catch (error) {
+        console.error("❌ Fehler beim Speichern des Pokémon:", error);
+    }
+}
+
+// Bestehender API-Endpunkt (unverändert), aber mit DB-Speicherung
+app.get("/", async (req, res) => {
+    const user = req.query.user;
+    if (!user) return res.send("Fehlender Parameter: user");
+
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
+    const isCaught = Math.random() < captureChances[pokemon.rarity];
+    const isShiny = Math.random() < shinyChance;
 
-    // Determine capture based on rarity
-    const isCaught = Math.random() < captureChances[pokemon.rarity] ? '◓Gefangen◓' : '🞮Entkommen🞮';
-    const isShiny = Math.random() < shinyChance ? '✪Shiny✪' : '';
+    const catchStatus = isCaught ? "◓Gefangen◓" : "🞮Entkommen🞮";
+    const shinyText = isShiny ? "✪Shiny✪" : "";
 
-    // Send a simple text response
-    res.send(`${isShiny} ${pokemon.name} - ${isCaught}`);
+    // NEU: Pokémon nur speichern, wenn es gefangen wurde
+    await saveToDatabase(user, pokemon, isCaught, isShiny);
+
+    res.send(`${shinyText} ${pokemon.name} - ${catchStatus}`);
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
