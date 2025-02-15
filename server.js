@@ -1,6 +1,7 @@
 require("dotenv").config();
+const express = require("express");
 const { neon } = require("@neondatabase/serverless");
-const express = require('express');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -71,7 +72,7 @@ const pokemonData = [
 const captureChances = { Common: 0.5, Strong: 0.45, Legendary: 0.2 };
 const shinyChance = 0.05;
 
-// NEUE FUNKTION: Gefangene Pokémon in die Datenbank speichern
+// **NEUE FUNKTION**: Gefangene Pokémon in die Datenbank speichern
 async function saveToDatabase(user, pokemon, isCaught, isShiny) {
     if (!isCaught) return; // Nur speichern, wenn das Pokémon gefangen wurde
 
@@ -88,10 +89,9 @@ async function saveToDatabase(user, pokemon, isCaught, isShiny) {
     }
 }
 
-// Bestehender API-Endpunkt (unverändert), aber mit DB-Speicherung
+// **Bestehender Endpunkt bleibt unverändert, aber mit zusätzlicher DB-Speicherung**
 app.get("/", async (req, res) => {
-    const user = req.query.user;
-    if (!user) return res.send("Fehlender Parameter: user");
+    const user = req.query.user || "unknown";
 
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
@@ -101,10 +101,11 @@ app.get("/", async (req, res) => {
     const catchStatus = isCaught ? "◓Gefangen◓" : "🞮Entkommen🞮";
     const shinyText = isShiny ? "✪Shiny✪" : "";
 
-    // NEU: Pokémon nur speichern, wenn es gefangen wurde
+    // **NEU: Pokémon nur speichern, wenn es gefangen wurde**
     await saveToDatabase(user, pokemon, isCaught, isShiny);
 
     res.send(`${shinyText} ${pokemon.name} - ${catchStatus}`);
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// **Server starten**
+app.listen(PORT, () => console.log(`Server läuft auf Port ${PORT}`));
