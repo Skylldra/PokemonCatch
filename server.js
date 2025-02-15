@@ -75,17 +75,18 @@ const shinyChance = 0.05;
 // Pokémon in die Datenbank speichern
 async function saveToDatabase(user, pokemon, isCaught, isShiny) {
     const pokemonId = parseInt(pokemon.name.split(" ")[0]); // Pokémon-ID extrahieren
+    const pokemonName = pokemon.name.substring(4); // Kürzt die ersten 4 Zeichen weg (ID + Leerzeichen)
 
-    console.log(`🔄 Speichere ${pokemon.name} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
+    console.log(`🔄 Speichere ${pokemonName} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
 
     try {
         await sql`
             INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
-            VALUES (${user}, ${pokemonId}, ${pokemon.name}, ${isCaught}, ${isShiny})
+            VALUES (${user}, ${pokemonId}, ${pokemonName}, ${isCaught}, ${isShiny})
             ON CONFLICT (twitch_username, pokemon_id) DO UPDATE
             SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny;
         `;
-        console.log(`✅ ${pokemon.name} für ${user} erfolgreich gespeichert!`);
+        console.log(`✅ ${pokemonName} für ${user} erfolgreich gespeichert!`);
     } catch (error) {
         console.error("❌ Fehler beim Speichern in die Datenbank:", error);
     }
