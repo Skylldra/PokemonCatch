@@ -72,32 +72,43 @@ const pokemonData = [
 const captureChances = { Common: 0.5, Strong: 0.45, Legendary: 0.2 };
 const shinyChance = 0.05;
 
-// **NEUE FUNKTION**: Gefangene Pokémon in die Datenbank speichern
+// **🛠️ NEUE FUNKTION: Gefangene Pokémon in die Datenbank speichern**
 async function saveToDatabase(user, pokemon, isCaught, isShiny) {
     if (!isCaught) {
-        console.log(❌ ${pokemon.name} wurde nicht gefangen. Kein Eintrag in die Datenbank.);
+        console.log(`❌ ${pokemon.name} wurde nicht gefangen. Kein Eintrag in die Datenbank.`);
         return;
     }
 
-    console.log(🔄 Speichere ${pokemon.name} für ${user} in die Datenbank...);
+    // Pokémon-ID extrahieren
+    const pokemonId = parseInt(pokemon.name.split(" ")[0]);
+    if (isNaN(pokemonId)) {
+        console.error(`❌ Fehler: Pokémon-ID konnte nicht extrahiert werden für ${pokemon.name}`);
+        return;
+    }
+
+    console.log(`🔄 Speichere ${pokemon.name} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
     
     try {
-        const result = await sql
+        await sql`
             INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
-            VALUES (${user}, ${pokemon.id}, ${pokemon.name}, true, ${isShiny})
+            VALUES (${user}, ${pokemonId}, ${pokemon.name}, true, ${isShiny})
             ON CONFLICT (twitch_username, pokemon_id) DO UPDATE
             SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny;
-        ;
-        console.log(✅ ${pokemon.name} für ${user} erfolgreich gespeichert!, result);
+        `;
+        console.log(`✅ ${pokemon.name} für ${user} erfolgreich gespeichert!`);
     } catch (error) {
         console.error("❌ Fehler beim Speichern in die Datenbank:", error);
     }
 }
 
-
-// **Bestehender Endpunkt bleibt unverändert, aber mit zusätzlicher DB-Speicherung**
+// **🎯 API-Endpunkt für `!catch` in Twitch**
 app.get("/", async (req, res) => {
-    const user = req.query.user || "unknown";
+    const user = req.query.user?.trim();
+    
+    if (!user || user === "") {
+        console.log("⚠️ Fehler: Twitch-Username nicht übergeben!");
+        return res.send("Fehlender Parameter: user");
+    }
 
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
@@ -107,11 +118,11 @@ app.get("/", async (req, res) => {
     const catchStatus = isCaught ? "◓Gefangen◓" : "🞮Entkommen🞮";
     const shinyText = isShiny ? "✪Shiny✪" : "";
 
-    // **NEU: Pokémon nur speichern, wenn es gefangen wurde**
+    // **🛠️ Pokémon nur speichern, wenn es gefangen wurde**
     await saveToDatabase(user, pokemon, isCaught, isShiny);
 
-    res.send(${shinyText} ${pokemon.name} - ${catchStatus});
+    res.send(`${shinyText} ${pokemon.name} - ${catchStatus}`);
 });
 
-// **Server starten**
-app.listen(PORT, () => console.log(Server läuft auf Port ${PORT}));
+// **🌍 Server starten**
+app.listen(PORT, () => console.log(`✅ Server läuft auf Port ${PORT}`));
