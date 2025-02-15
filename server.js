@@ -115,7 +115,44 @@ app.get("/", async (req, res) => {
     // 🛠️ Pokémon speichern, egal ob gefangen oder nicht
     await saveToDatabase(user, pokemon, isCaught, isShiny);
 
-    res.send(`#${pokemon.name.split(" ")[0]} ${pokemon.name.split(" ").slice(1).join(" ")} - ${catchStatus}`);
+    // **Angezeigter Name ohne doppelte Nummer**
+    const pokemonNumber = pokemon.name.split(" ")[0];
+    const pokemonName = pokemon.name.split(" ").slice(1).join(" ");
+
+    res.send(`#${pokemonNumber} ${pokemonName} - ${catchStatus}`);
+});
+
+// 🏆 **Pokédex abrufen, sortiert nach Nummer**
+app.get("/pokedex/:user", async (req, res) => {
+    const user = req.params.user?.trim();
+
+    if (!user) {
+        return res.send("Fehlender Benutzername.");
+    }
+
+    try {
+        const pokedexEntries = await sql`
+            SELECT pokemon_id, pokemon_name, gefangen FROM pokedex 
+            WHERE twitch_username = ${user} 
+            ORDER BY pokemon_id ASC;
+        `;
+
+        if (pokedexEntries.length === 0) {
+            return res.send("Keine Pokémon gefunden!");
+        }
+
+        const formattedEntries = pokedexEntries.map(entry => {
+            const pokemonNumber = entry.pokemon_id;
+            const pokemonName = entry.pokemon_name.split(" ").slice(1).join(" ");
+            const status = entry.gefangen ? "Gefangen" : "Nicht gefangen";
+            return `#${pokemonNumber} ${pokemonName} - ${status}`;
+        });
+
+        res.send(formattedEntries.join("\n"));
+    } catch (error) {
+        console.error("❌ Fehler beim Abrufen des Pokédex:", error);
+        res.status(500).send("Fehler beim Abrufen des Pokédex.");
+    }
 });
 
 // 🌍 **Server starten**
