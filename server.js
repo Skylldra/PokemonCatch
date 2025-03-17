@@ -84,7 +84,7 @@ const pokeballs = {
 // Format: "twitch_username": "Pokeball-Typ"
 const specialBallUsers = {
     // Beispiele:
-    "Kampfschwein90": "Superball",
+    "Kampfschein90": "Superball",
     "beispieluser2": "Hyperball",
     // Füge hier weitere Spieler mit Sonderberechtigung hinzu
 };
@@ -100,19 +100,18 @@ function getPokeballType(username) {
 }
 
 // Pokémon in die Datenbank speichern
-async function saveToDatabase(user, pokemon, isCaught, isShiny, pokeballType) {
+async function saveToDatabase(user, pokemon, isCaught, isShiny) {
     const pokemonId = parseInt(pokemon.name.split(" ")[0]); // Pokémon-ID extrahieren
     const pokemonName = pokemon.name.substring(4); // Kürzt die ersten 4 Zeichen weg (ID + Leerzeichen)
 
     console.log(`🔄 Speichere ${pokemonName} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
-    console.log(`   Verwendet: ${pokeballType}`);
     
     try {
         await sql`
-            INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny, pokeball)
-            VALUES (${user}, ${pokemonId}, ${pokemonName}, ${isCaught}, ${isShiny}, ${pokeballType})
+            INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
+            VALUES (${user}, ${pokemonId}, ${pokemonName}, ${isCaught}, ${isShiny})
             ON CONFLICT (twitch_username, pokemon_id) DO UPDATE
-            SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny, pokeball = EXCLUDED.pokeball;
+            SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny;
         `;
         console.log(`✅ ${pokemonName} für ${user} erfolgreich gespeichert!`);
     } catch (error) {
@@ -150,8 +149,8 @@ app.get("/", async (req, res) => {
     // Pokeballtext für die Ausgabe
     const pokeballText = pokeballType !== "Pokeball" ? ` [${pokeballType}]` : "";
 
-    // Pokémon speichern
-    await saveToDatabase(user, pokemon, isCaught, isShiny, pokeballType);
+    // Pokémon speichern (ohne Pokeballtyp in die DB)
+    await saveToDatabase(user, pokemon, isCaught, isShiny);
 
     // Angezeigter Name ohne doppelte Nummer
     const pokemonNumber = pokemon.name.split(" ")[0];
