@@ -69,22 +69,50 @@ const pokemonData = [
 ];
 
 // Fang- & Shiny-Chancen
-const captureChances = { Common: 0.5, Strong: 0.45, Legendary: 0.2 };
+const baseChances = { Common: 0.5, Strong: 0.45, Legendary: 0.2 };
 const shinyChance = 0.05;
 
+// Pokeball-Typen und ihre Fangmultiplikatoren
+const pokeballs = {
+    "Pokeball": 1,     // Normale Fangrate (Multiplikator 1)
+    "Superball": 1.5,  // 1.5x höhere Fangrate
+    "Hyperball": 2     // 2x höhere Fangrate
+};
+
+// Berechtigungsliste für spezielle Pokebälle
+// Hier kannst du Spieler hinzufügen, die spezielle Pokebälle nutzen dürfen
+// Format: "twitch_username": "Pokeball-Typ"
+const specialBallUsers = {
+    // Beispiele:
+    "beispieluser1": "Superball",
+    "beispieluser2": "Hyperball",
+    // Füge hier weitere Spieler mit Sonderberechtigung hinzu
+};
+
+// Funktion zum Bestimmen des Pokeball-Typs eines Benutzers
+function getPokeballType(username) {
+    // Prüfen, ob der Benutzer einen speziellen Ball hat
+    if (specialBallUsers[username]) {
+        return specialBallUsers[username];
+    }
+    // Standard ist der normale Pokeball
+    return "Pokeball";
+}
+
 // Pokémon in die Datenbank speichern
-async function saveToDatabase(user, pokemon, isCaught, isShiny) {
+async function saveToDatabase(user, pokemon, isCaught, isShiny, pokeballType) {
     const pokemonId = parseInt(pokemon.name.split(" ")[0]); // Pokémon-ID extrahieren
     const pokemonName = pokemon.name.substring(4); // Kürzt die ersten 4 Zeichen weg (ID + Leerzeichen)
 
     console.log(`🔄 Speichere ${pokemonName} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
-
+    console.log(`   Verwendet: ${pokeballType}`);
+    
     try {
         await sql`
-            INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
-            VALUES (${user}, ${pokemonId}, ${pokemonName}, ${isCaught}, ${isShiny})
+            INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny, pokeball)
+            VALUES (${user}, ${pokemonId}, ${pokemonName}, ${isCaught}, ${isShiny}, ${pokeballType})
             ON CONFLICT (twitch_username, pokemon_id) DO UPDATE
-            SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny;
+            SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny, pokeball = EXCLUDED.pokeball;
         `;
         console.log(`✅ ${pokemonName} für ${user} erfolgreich gespeichert!`);
     } catch (error) {
@@ -101,22 +129,35 @@ app.get("/", async (req, res) => {
         return res.send("Fehlender Parameter: user");
     }
 
+    // Pokeball des Benutzers bestimmen
+    const pokeballType = getPokeballType(user);
+    const pokeballMultiplier = pokeballs[pokeballType];
+    
     const randomIndex = Math.floor(Math.random() * pokemonData.length);
     const pokemon = pokemonData[randomIndex];
-    const isCaught = Math.random() < captureChances[pokemon.rarity];
+    
+    // Berechne die Fangchance mit dem Pokeball-Multiplikator
+    const catchChance = baseChances[pokemon.rarity] * pokeballMultiplier;
+    // Begrenze die Fangchance auf maximal 95% (optional)
+    const adjustedCatchChance = Math.min(catchChance, 0.95);
+    
+    const isCaught = Math.random() < adjustedCatchChance;
     const isShiny = Math.random() < shinyChance;
 
     const catchStatus = isCaught ? "◓Gefangen◓" : "🞮Nicht gefangen🞮";
     const shinyText = isShiny ? " ✨Shiny!✨" : "";
+    
+    // Pokeballtext für die Ausgabe
+    const pokeballText = pokeballType !== "Pokeball" ? ` [${pokeballType}]` : "";
 
     // Pokémon speichern
-    await saveToDatabase(user, pokemon, isCaught, isShiny);
+    await saveToDatabase(user, pokemon, isCaught, isShiny, pokeballType);
 
     // Angezeigter Name ohne doppelte Nummer
     const pokemonNumber = pokemon.name.split(" ")[0];
     const pokemonName = pokemon.name.split(" ").slice(1).join(" ");
 
-    res.send(`#${pokemonNumber} ${pokemonName} - ${catchStatus}${shinyText}`);
+    res.send(`#${pokemonNumber} ${pokemonName}${pokeballText} - ${catchStatus}${shinyText}`);
 });
 
 // Server starten
