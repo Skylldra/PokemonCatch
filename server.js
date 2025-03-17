@@ -76,7 +76,7 @@ const shinyChance = 0.05;
 const pokeballs = {
     "Pokeball": 1,     // Normale Fangrate (Multiplikator 1)
     "Superball": 1.5,  // 1.5x höhere Fangrate
-    "Hyperball": 2     // 2x höhere Fangrate
+    "Hyperball": 1.75     // 1.75x höhere Fangrate
 };
 
 // Berechtigungsliste für spezielle Pokebälle
