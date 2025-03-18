@@ -159,5 +159,45 @@ app.get("/", async (req, res) => {
     res.send(`#${pokemonNumber} ${pokemonName}${pokeballText} - ${catchStatus}${shinyText}`);
 });
 
+// Neue Route für garantierte Shiny-Begegnungen
+app.get("/shiny/:user", async (req, res) => {
+    const user = req.params.user?.trim();
+    
+    if (!user || user === "") {
+        console.log("⚠️ Fehler: Twitch-Username nicht übergeben!");
+        return res.send("Fehlender Parameter: user");
+    }
+
+    // Pokeball des Benutzers bestimmen
+    const pokeballType = getPokeballType(user);
+    const pokeballMultiplier = pokeballs[pokeballType];
+    
+    const randomIndex = Math.floor(Math.random() * pokemonData.length);
+    const pokemon = pokemonData[randomIndex];
+    
+    // Berechne die Fangchance mit dem Pokeball-Multiplikator (gleich wie bei normaler Route)
+    const catchChance = baseChances[pokemon.rarity] * pokeballMultiplier;
+    // Begrenze die Fangchance auf maximal 95% (optional)
+    const adjustedCatchChance = Math.min(catchChance, 0.95);
+    
+    const isCaught = Math.random() < adjustedCatchChance;
+    const isShiny = true; // Immer Shiny bei dieser Route!
+
+    const catchStatus = isCaught ? "◓Gefangen◓" : "🞮Nicht gefangen🞮";
+    const shinyText = " ✨Shiny!✨"; // Immer angezeigt bei dieser Route
+    
+    // Pokeballtext für die Ausgabe
+    const pokeballText = pokeballType !== "Pokeball" ? ` [${pokeballType}]` : "";
+
+    // Pokémon speichern (ohne Pokeballtyp in die DB)
+    await saveToDatabase(user, pokemon, isCaught, isShiny);
+
+    // Angezeigter Name ohne doppelte Nummer
+    const pokemonNumber = pokemon.name.split(" ")[0];
+    const pokemonName = pokemon.name.split(" ").slice(1).join(" ");
+
+    res.send(`#${pokemonNumber} ${pokemonName}${pokeballText} - ${catchStatus}${shinyText}`);
+});
+
 // Server starten
 app.listen(PORT, () => console.log(`✅ Server läuft auf Port ${PORT}`));
