@@ -160,8 +160,8 @@ app.get("/", async (req, res) => {
 });
 
 // Neue Route für garantierte Shiny-Begegnungen
-app.get("/shiny/:user", async (req, res) => {
-    const user = req.params.user?.trim();
+app.get("/shiny", async (req, res) => {
+    const user = req.query.user?.trim();
     
     if (!user || user === "") {
         console.log("⚠️ Fehler: Twitch-Username nicht übergeben!");
