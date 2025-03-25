@@ -90,55 +90,31 @@ const specialBallUsers = {
     // Füge hier weitere Spieler mit Sonderberechtigung hinzu
 };
 
-// Korrigierte Funktion zum Speichern in die Datenbank
+// Funktion zum Bestimmen des Pokeball-Typs eines Benutzers
+function getPokeballType(username) {
+    // Prüfen, ob der Benutzer einen speziellen Ball hat
+    if (specialBallUsers[username]) {
+        return specialBallUsers[username];
+    }
+    // Standard ist der normale Pokeball
+    return "Pokeball";
+}
+
+// Pokémon in die Datenbank speichern
 async function saveToDatabase(user, pokemon, isCaught, isShiny) {
     const pokemonId = parseInt(pokemon.name.split(" ")[0]); // Pokémon-ID extrahieren
     const pokemonName = pokemon.name.substring(4); // Kürzt die ersten 4 Zeichen weg (ID + Leerzeichen)
 
     console.log(`🔄 Speichere ${pokemonName} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
-    
+
     try {
-        // Zuerst prüfen, ob das Pokemon bereits gefangen wurde
-        const existingEntry = await sql`
-            SELECT gefangen, shiny FROM pokedex 
-            WHERE twitch_username = ${user} AND pokemon_id = ${pokemonId}
-        `;
-        
-        let newCaught = isCaught;
-        let newShiny = isShiny;
-        
-        // Wenn ein Eintrag existiert, behalten wir den "gefangen"-Status bei, falls er true war
-        if (existingEntry.length > 0) {
-            const currentStatus = existingEntry[0];
-            
-            // Einmal gefangen = immer gefangen
-            newCaught = currentStatus.gefangen || isCaught;
-            
-            // Einmal shiny = immer shiny
-            newShiny = currentStatus.shiny || isShiny;
-        }
-        
-        // Eine einzige INSERT/UPDATE-Query, die die Logik umsetzt
         await sql`
             INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
-            VALUES (${user}, ${pokemonId}, ${pokemonName}, ${newCaught}, ${newShiny})
+            VALUES (${user}, ${pokemonId}, ${pokemonName}, ${isCaught}, ${isShiny})
             ON CONFLICT (twitch_username, pokemon_id) DO UPDATE
-            SET gefangen = ${newCaught}, shiny = ${newShiny};
+            SET gefangen = EXCLUDED.gefangen, shiny = EXCLUDED.shiny;
         `;
-        
-        // Logging für verschiedene Fälle
-        if (existingEntry.length > 0) {
-            const currentStatus = existingEntry[0];
-            if (currentStatus.gefangen) {
-                console.log(`✅ ${pokemonName} bleibt gefangen für ${user}. Shiny-Status aktualisiert: ${newShiny ? 'Ja' : 'Nein'}`);
-            } else if (isCaught) {
-                console.log(`✅ ${pokemonName} wurde jetzt für ${user} gefangen!`);
-            } else {
-                console.log(`ℹ️ ${pokemonName} bleibt ungefangen für ${user}.`);
-            }
-        } else {
-            console.log(`✅ Neuer Eintrag: ${pokemonName} für ${user} ${isCaught ? 'gefangen' : 'nicht gefangen'}!`);
-        }
+        console.log(`✅ ${pokemonName} für ${user} erfolgreich gespeichert!`);
     } catch (error) {
         console.error("❌ Fehler beim Speichern in die Datenbank:", error);
     }
