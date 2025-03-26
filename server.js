@@ -86,6 +86,7 @@ const specialBallUsers = {
     // Beispiele:
     "kampfschwein90": "Superball",
     "mercilft": "Superball",
+    "x_meduza_": "Superball",
     "beispieluser2": "Hyperball",
     // Füge hier weitere Spieler mit Sonderberechtigung hinzu
 };
