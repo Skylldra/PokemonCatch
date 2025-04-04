@@ -84,9 +84,11 @@ const pokeballs = {
 // Format: "twitch_username": "Pokeball-Typ"
 const specialBallUsers = {
     // Beispiele:
-    "kampfschwein90": "Superball",
+    "kampfschwein90": "Hyperball",
     "mercilft": "Superball",
     "x_meduza_": "Hyperball",
+    "pia_ma_ria": "Hyperball",
+    "nexus_eu": "Superball",
     "beispieluser2": "Hyperball",
     // Füge hier weitere Spieler mit Sonderberechtigung hinzu
 };
