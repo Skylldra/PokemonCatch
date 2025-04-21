@@ -88,7 +88,8 @@ const specialBallUsers = {
     "mercilft": "Superball",
     "x_meduza_": "Hyperball",
     "pia_ma_ria": "Hyperball",
-    "nexus_eu": "Superball",
+    "nexus_eu": "Superball",,
+    "scirocc0": "Superball",
     "beispieluser2": "Hyperball",
     // Füge hier weitere Spieler mit Sonderberechtigung hinzu
 };
