@@ -122,14 +122,20 @@ async function saveToDatabase(user, pokemon, isCaught, isShiny) {
         if (existingEntry.length > 0) {
             const currentStatus = existingEntry[0];
             
-            // Wenn bereits gefangen, nur shiny-Status aktualisieren, aber gefangen-Status nicht ändern
+            // Wenn bereits gefangen
             if (currentStatus.gefangen) {
-                await sql`
-                    UPDATE pokedex 
-                    SET shiny = ${currentStatus.shiny || isShiny} 
-                    WHERE twitch_username = ${user} AND pokemon_id = ${pokemonId}
-                `;
-                console.log(`✅ ${pokemonName} war bereits gefangen. Shiny-Status aktualisiert für ${user}.`);
+                // Nur den shiny-Status aktualisieren wenn das neue Pokémon gefangen wurde und shiny ist
+                if (isCaught && isShiny) {
+                    await sql`
+                        UPDATE pokedex 
+                        SET shiny = true 
+                        WHERE twitch_username = ${user} AND pokemon_id = ${pokemonId}
+                    `;
+                    console.log(`✅ ${pokemonName} war bereits gefangen. Shiny-Status auf true aktualisiert für ${user}.`);
+                } else {
+                    // Wenn das neue Pokémon nicht gefangen wurde oder nicht shiny ist, keine Änderung
+                    console.log(`ℹ️ ${pokemonName} war bereits gefangen. Keine Änderung für ${user}.`);
+                }
             } 
             // Wenn nicht gefangen, aber jetzt gefangen wurde, dann aktualisieren
             else if (isCaught) {
