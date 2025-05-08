@@ -96,10 +96,14 @@ const specialBallUsers = {
 
 // Funktion zum Bestimmen des Pokeball-Typs eines Benutzers
 function getPokeballType(username) {
-    // Prüfen, ob der Benutzer einen speziellen Ball hat
-    if (specialBallUsers[username]) {
-        return specialBallUsers[username];
+    // Benutzername in Kleinbuchstaben umwandeln
+    const normalizedUsername = username.toLowerCase();
+    
+    // Prüfen, ob der normalisierte Benutzername einen speziellen Ball hat
+    if (specialBallUsers[normalizedUsername]) {
+        return specialBallUsers[normalizedUsername];
     }
+    
     // Standard ist der normale Pokeball
     return "Pokeball";
 }
