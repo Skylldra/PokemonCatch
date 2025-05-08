@@ -84,12 +84,12 @@ const pokeballs = {
 // Format: "twitch_username": "Pokeball-Typ"
 const specialBallUsers = {
     // Beispiele:
-    "Kampfschwein90": "Hyperball",
+    "kampfschwein90": "Hyperball",
     "mercilft": "Superball",
-    "x_MeduZa_": "Hyperball",
-    "Pia_ma_ria": "Hyperball",
+    "x_meduza_": "Hyperball",
+    "pia_ma_ria": "Hyperball",
     "nexus_eu": "Superball",
-    "Scirocc0": "Superball",
+    "scirocc0": "Superball",
     "beispieluser2": "Hyperball",
     // Füge hier weitere Spieler mit Sonderberechtigung hinzu
 };
@@ -106,16 +106,19 @@ function getPokeballType(username) {
 
 // Pokémon in die Datenbank speichern
 async function saveToDatabase(user, pokemon, isCaught, isShiny) {
+    // Benutzername in Kleinbuchstaben umwandeln
+    const normalizedUser = user.toLowerCase();
+    
     const pokemonId = parseInt(pokemon.name.split(" ")[0]); // Pokémon-ID extrahieren
     const pokemonName = pokemon.name.substring(4); // Kürzt die ersten 4 Zeichen weg (ID + Leerzeichen)
 
-    console.log(`🔄 Speichere ${pokemonName} (ID: ${pokemonId}) für ${user} in die Datenbank...`);
+    console.log(`🔄 Speichere ${pokemonName} (ID: ${pokemonId}) für ${normalizedUser} in die Datenbank...`);
     
     try {
         // Zuerst prüfen, ob das Pokemon bereits in der Datenbank ist und ob es gefangen wurde
         const existingEntry = await sql`
             SELECT gefangen, shiny FROM pokedex 
-            WHERE twitch_username = ${user} AND pokemon_id = ${pokemonId}
+            WHERE twitch_username = ${normalizedUser} AND pokemon_id = ${pokemonId}
         `;
         
         // Falls es bereits einen Eintrag gibt
@@ -129,12 +132,12 @@ async function saveToDatabase(user, pokemon, isCaught, isShiny) {
                     await sql`
                         UPDATE pokedex 
                         SET shiny = true 
-                        WHERE twitch_username = ${user} AND pokemon_id = ${pokemonId}
+                        WHERE twitch_username = ${normalizedUser} AND pokemon_id = ${pokemonId}
                     `;
-                    console.log(`✅ ${pokemonName} war bereits gefangen. Shiny-Status auf true aktualisiert für ${user}.`);
+                    console.log(`✅ ${pokemonName} war bereits gefangen. Shiny-Status auf true aktualisiert für ${normalizedUser}.`);
                 } else {
                     // Wenn das neue Pokémon nicht gefangen wurde oder nicht shiny ist, keine Änderung
-                    console.log(`ℹ️ ${pokemonName} war bereits gefangen. Keine Änderung für ${user}.`);
+                    console.log(`ℹ️ ${pokemonName} war bereits gefangen. Keine Änderung für ${normalizedUser}.`);
                 }
             } 
             // Wenn nicht gefangen, aber jetzt gefangen wurde, dann aktualisieren
@@ -142,13 +145,13 @@ async function saveToDatabase(user, pokemon, isCaught, isShiny) {
                 await sql`
                     UPDATE pokedex 
                     SET gefangen = true, shiny = ${isShiny} 
-                    WHERE twitch_username = ${user} AND pokemon_id = ${pokemonId}
+                    WHERE twitch_username = ${normalizedUser} AND pokemon_id = ${pokemonId}
                 `;
-                console.log(`✅ ${pokemonName} wurde jetzt von ${user} gefangen!`);
+                console.log(`✅ ${pokemonName} wurde jetzt von ${normalizedUser} gefangen!`);
             }
             // Wenn nicht gefangen und wieder nicht gefangen wird, bleibt es bei "gesehen"
             else {
-                console.log(`ℹ️ ${pokemonName} bleibt als gesehen für ${user} markiert.`);
+                console.log(`ℹ️ ${pokemonName} bleibt als gesehen für ${normalizedUser} markiert.`);
                 // Kein Update nötig, da bereits als gesehen in der DB
             }
         } 
@@ -156,16 +159,16 @@ async function saveToDatabase(user, pokemon, isCaught, isShiny) {
         else {
             await sql`
                 INSERT INTO pokedex (twitch_username, pokemon_id, pokemon_name, gefangen, shiny)
-                VALUES (${user}, ${pokemonId}, ${pokemonName}, ${isCaught}, ${isShiny})
+                VALUES (${normalizedUser}, ${pokemonId}, ${pokemonName}, ${isCaught}, ${isShiny})
             `;
             if (isCaught) {
-                console.log(`✅ Neues Pokémon: ${pokemonName} wurde von ${user} gefangen!`);
+                console.log(`✅ Neues Pokémon: ${pokemonName} wurde von ${normalizedUser} gefangen!`);
             } else {
-                console.log(`👁️ Neues Pokémon: ${pokemonName} wurde von ${user} gesehen!`);
+                console.log(`👁️ Neues Pokémon: ${pokemonName} wurde von ${normalizedUser} gesehen!`);
             }
         }
         
-        console.log(`✅ ${pokemonName} für ${user} erfolgreich in der Datenbank gespeichert!`);
+        console.log(`✅ ${pokemonName} für ${normalizedUser} erfolgreich in der Datenbank gespeichert!`);
     } catch (error) {
         console.error("❌ Fehler beim Speichern in die Datenbank:", error);
     }
